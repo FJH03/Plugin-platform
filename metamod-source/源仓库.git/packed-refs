@@ -1,0 +1,69 @@
+# pack-refs with: peeled fully-peeled sorted 
+80e8ff0be3b62386bbd6f937e97b819ef8be6dd2 refs/remotes/origin/1.10-dev
+7ff2d97bdad1493b809c5ec91bbfc7abc6ae5445 refs/remotes/origin/1.11-dev
+18279e8421cc2b1944eb83f0ad7de5f8ed0d0df9 refs/remotes/origin/1.12-dev
+b4d3562f09a253a80bb61c2a40f650512220c075 refs/remotes/origin/1.4-dev
+23c82ec9aeaa23d20ae637ea64be87dfccb9b695 refs/remotes/origin/1.6-dev
+882b70cb492165681a4dd0aa8b5d2ca717d3246e refs/remotes/origin/1.7-dev
+19fab618a762513edc04ced80d2477b42aed06c1 refs/remotes/origin/1.8-dev
+d91241fb80f4bd12e53d154b3bb6e99e242060e5 refs/remotes/origin/1.9-dev
+0a4f9c80036b11199da79b6f14fdaa2dd71b10d6 refs/remotes/origin/DetourHook
+8768fe9a168f7192733014c5c83aeb8d21604ac7 refs/remotes/origin/blade-2021
+92b888b2311c8d635d73c0affa8085e515cf5d6e refs/remotes/origin/bms-support
+8cfab6c6373289a664ad10e79ee3c72e562bc5dc refs/remotes/origin/fix-vsgen-manualbuilds
+9038be2bd1a6940e1182cada1650ee72e7fff604 refs/remotes/origin/fix37
+8939a758018a928eb3bc9cb513536b85b1378691 refs/remotes/origin/gcc9
+dc41559c7905072feec38b6d45ea14c05da3b855 refs/remotes/origin/master
+51eea119c93cc163b037369cd2abc780bdf046f6 refs/remotes/origin/mcv
+f66867e53570476ed6b26da5452b6f9f09bd531e refs/remotes/origin/meson
+58888eb9f5528334afbb11bb0f184b0a9e008bec refs/remotes/origin/separate-doi
+e4cfea72279ef0bc46e5470ddedc3de7ff7bed55 refs/remotes/origin/shim-noshim
+1b8ebeb7fd921c02e90c8d1dfd16b846587bafe7 refs/remotes/origin/travis_the_compiler
+a6e265e40752533f7a424ece0780932c47b95ea5 refs/remotes/origin/x64-support
+0cf2776e7f1fe46e744799dd803b36e2748b770e refs/tags/mmsource-1.00
+8f5e99397de8a09e04c7a09180073fd8f0585a0d refs/tags/mmsource-1.00-RC1
+81ae7cabf5b27fdfdce9934af79c6f07cc8b84df refs/tags/mmsource-1.00-RC2
+ec79e03f7ec53de2b7478b1a11e1ee55b6163a0f refs/tags/mmsource-1.1
+52c5031598ee2db16325ad058a805628dfce27c2 refs/tags/mmsource-1.1.1
+20beff0636b09d7d2f2b9de093fc49597a98cc75 refs/tags/mmsource-1.1.2
+f666238c6abaa0ece7bb48a72db0f2e5089a247c refs/tags/mmsource-1.10.0
+c3bf42c68f8e5dba5aecb2e80ddcca10fbbad9f0 refs/tags/mmsource-1.10.1
+^463dae71bc5607b6b7dcfafdbff1e9fc61352865
+1e980e53ad2eeec5974c1f959c044b75503f0875 refs/tags/mmsource-1.10.2
+^2709a0604fc55612747399a7bbbf50973cfbd78c
+3638eec107fea8a4c510aa3f496d5e7c4883783e refs/tags/mmsource-1.10.3
+^ff4adba296f35391be9273036c7b18e601c63d05
+d2cf9968c850369789d6805f95b8a44fade33ec7 refs/tags/mmsource-1.10.4
+^e52d2fc0ce5b66a570132ce00b0d529be5e989b3
+4559a592a9ecc5195b58a967fac409acfe2724de refs/tags/mmsource-1.10.5
+^e0ef546bb766d72a2849fbc2ce520d0a38877186
+0beb9c843a52ddf056cdb8e274779d7fa56aef7d refs/tags/mmsource-1.10.6
+^9fed12f652af6a1b03d285d13abbd55726099d1e
+15bf3f5ea8a2ab6b26d82d18c13ac4f6d28f5a9a refs/tags/mmsource-1.2
+8efac63e69008d601489a6365bb4884abc065699 refs/tags/mmsource-1.2.1
+075e12f944183eb340cdc76b5db7c72522072bd7 refs/tags/mmsource-1.2.2
+e36f74bc0f645e3078f5499dbac49dcd735f1d35 refs/tags/mmsource-1.2.3
+547cc72ef5e33c02d822b34a3875bb28090bbfcd refs/tags/mmsource-1.3
+30779961cb8182882f8425337460ae459a091e16 refs/tags/mmsource-1.3a
+ead1b254c799397c93fcace04bee76d45cd80a9b refs/tags/mmsource-1.3d
+d386a5b6242eeb0a919cedea81e778f1b7c06aec refs/tags/mmsource-1.4
+18e06e691d0c97b1e2fcd9efed07148cedc92125 refs/tags/mmsource-1.4.1
+efa574410d588084bc19fa7a6ce846feeb75ffbe refs/tags/mmsource-1.4.2
+d71e02c31c0ed603800cb07a7cf77cbb6837a151 refs/tags/mmsource-1.4.3
+4e21dbaf871607a0300fad9a1b761734c283f384 refs/tags/mmsource-1.4.4
+9b0e8a26589cae2636e739d927ced0539ee0781f refs/tags/mmsource-1.6.0
+86e6cc09267a634dcd3d6d358c430e8e08e337b3 refs/tags/mmsource-1.6.1
+d0fd47b07bff6f88da36a4c5eec3058b552c1fb3 refs/tags/mmsource-1.6.2
+6608e4bf4d090e093ff0b11a31ef023347b91c9c refs/tags/mmsource-1.7.0
+d97f5d9fe7eb1161f657b70aeebf70c7716231ae refs/tags/mmsource-1.7.1
+7549974a6a3b2f2118ebf561f61c8b6184fa67fb refs/tags/mmsource-1.8.0
+bd829e98161ce2ae60a9389a06988587f8f51bd9 refs/tags/mmsource-1.8.1
+c7956704933d7a32574d8f0b7bf67663e86daa3b refs/tags/mmsource-1.8.2
+4244df79199b8b50514bc486c40a7560183e1e4d refs/tags/mmsource-1.8.3
+2364e3894e3f1b43a003defd80ed2db630069a28 refs/tags/mmsource-1.8.4
+e884f117f9b91d98eed1092e7b4f5ab4a0ecb28a refs/tags/mmsource-1.8.5
+385563d0db024b9d2b7395c68e62891ef9f6e8bc refs/tags/mmsource-1.8.6
+22ed031a242f17d887d6d2f12b6903333204bc99 refs/tags/mmsource-1.8.7
+a42e09095bcfdb3012cebd98175db536ec244fda refs/tags/mmsource-1.9.0
+b5dd2caf49e9e42dab0dad37b4bfd4c16ff6d469 refs/tags/mmsource-1.9.1
+5e50e5763a426c98273db54d92967af8f0637415 refs/tags/mmsource-1.9.2
