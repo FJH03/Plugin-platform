@@ -166,7 +166,7 @@ public:
 		{
 			if (!mm_LoadMetamodLibrary(mm_backend, error, sizeof(error)))
 			{
-				mm_LogFatal("Detected engine %d but could not load: %s", mm_backend, error);
+				mm_LogFatal("错误1: 检测到引擎 %d 但是不能够加载: %s", mm_backend, error);
 				return false;
 			}
 		}
