@@ -87,6 +87,7 @@ public:
 	}
 
 	Vector					m_vecLastFacing;
+	CNetworkVar( bool, m_bShouldIgnoreOffsetAndAccuracy );
 
 	// Only support prediction in TF2 for now
 #if defined( INVASION_DLL ) || defined( INVASION_CLIENT_DLL )
@@ -126,7 +127,7 @@ public:
 
 	virtual bool			Interpolate( float currentTime );
 
-	virtual bool			ShouldFlipViewModel() OVERRIDE;
+	bool					ShouldFlipViewModel();
 	void					UpdateAnimationParity( void );
 
 	virtual void			ApplyBoneMatrixTransform( matrix3x4_t& transform );

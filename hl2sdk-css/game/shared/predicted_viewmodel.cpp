@@ -8,6 +8,7 @@
 
 #ifdef CLIENT_DLL
 #include "prediction.h"
+#include "c_cs_player.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -28,7 +29,6 @@ CPredictedViewModel::CPredictedViewModel() : m_LagAnglesHistory("CPredictedViewM
 {
 	m_vLagAngles.Init();
 	m_LagAnglesHistory.Setup( &m_vLagAngles, 0 );
-	m_vPredictedOffset.Init();
 }
 #else
 CPredictedViewModel::CPredictedViewModel()
@@ -44,11 +44,21 @@ CPredictedViewModel::~CPredictedViewModel()
 {
 }
 
-#if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
-ConVar sv_wpn_sway_pred_legacy( "sv_wpn_sway_pred_legacy", "0", FCVAR_REPLICATED | FCVAR_CHEAT );
-#else
-ConVar sv_wpn_sway_pred_legacy( "sv_wpn_sway_pred_legacy", "1", FCVAR_REPLICATED | FCVAR_CHEAT );
+//-----------------------------------------------------------------------------
+// Purpose:  Adds head bob for off hand models
+//-----------------------------------------------------------------------------
+void CPredictedViewModel::AddViewModelBob( CBasePlayer *owner, Vector& eyePosition, QAngle& eyeAngles )
+{
+#ifdef CLIENT_DLL
+	// if we are an off hand view model and we have a model, add head bob.
+	// (Head bob for main hand model added by the weapon itself.)
+	/*if ( ViewModelIndex() == HOSTAGE_VIEWMODEL )
+	{
+		CalNewViewModelBobbing( owner, &m_BobState, HOSTAGE_VIEWMODEL );
+		AddNewViewModelBobbing( eyePosition, eyeAngles, &m_BobState );
+	}*/
 #endif
+}
 
 #ifdef CLIENT_DLL
 ConVar cl_wpn_sway_interp( "cl_wpn_sway_interp", "0.1", FCVAR_CLIENTDLL );
@@ -57,36 +67,18 @@ ConVar cl_wpn_sway_scale( "cl_wpn_sway_scale", "1.0", FCVAR_CLIENTDLL|FCVAR_CHEA
 
 void CPredictedViewModel::CalcViewModelLag( Vector& origin, QAngle& angles, QAngle& original_angles )
 {
-	if ( sv_wpn_sway_pred_legacy.GetBool() )
-	{
-		// misyl: This whole class and codepath exists to compensate for a prediction bug that I have now fixed...
-		//
-		// :c
-		//
-		// Disabled by default for a few games, but kept for posterity in case I am actually wrong or something.
-		// Don't want to affect sway behaviour on other games as viewmodels might not be made for it.
-#ifdef CLIENT_DLL
-		float interp = cl_wpn_sway_interp.GetFloat();
-		if ( !interp )
-			return;
-
-		if ( prediction->InPrediction() && !prediction->IsFirstTimePredicted() )
-		{
-			origin += m_vPredictedOffset;
-			return;
-		}
-
+	#ifdef CLIENT_DLL
 		// Calculate our drift
 		Vector	forward, right, up;
 		AngleVectors( angles, &forward, &right, &up );
-	
+		
 		// Add an entry to the history.
 		m_vLagAngles = angles;
-		m_LagAnglesHistory.NoteChanged( gpGlobals->curtime, interp, false );
-	
+		m_LagAnglesHistory.NoteChanged( gpGlobals->curtime, cl_wpn_sway_interp.GetFloat(), false );
+		
 		// Interpolate back 100ms.
-		m_LagAnglesHistory.Interpolate( gpGlobals->curtime, interp );
-	
+		m_LagAnglesHistory.Interpolate( gpGlobals->curtime, cl_wpn_sway_interp.GetFloat() );
+		
 		// Now take the 100ms angle difference and figure out how far the forward vector moved in local space.
 		Vector vLaggedForward;
 		QAngle angleDiff = m_vLagAngles - angles;
@@ -95,12 +87,6 @@ void CPredictedViewModel::CalcViewModelLag( Vector& origin, QAngle& angles, QAng
 
 		// Now offset the origin using that.
 		vForwardDiff *= cl_wpn_sway_scale.GetFloat();
-		m_vPredictedOffset = forward*vForwardDiff.x + right*-vForwardDiff.y + up*vForwardDiff.z;
-		origin += m_vPredictedOffset;
-#endif
-	}
-	else
-	{
-		return BaseClass::CalcViewModelLag( origin, angles, original_angles );
-	}
+		origin += forward*vForwardDiff.x + right*-vForwardDiff.y + up*vForwardDiff.z;
+	#endif
 }

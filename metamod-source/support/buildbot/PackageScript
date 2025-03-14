@@ -35,7 +35,6 @@ for cxx in MMS.all_targets:
         builder.AddCopy(os.path.join(builder.sourcePath, 'support', 'metamod.vdf'), addons_folder)
 
 builder.AddCopy(os.path.join(builder.sourcePath, 'support', 'metaplugins.ini'), metamod_folder)
-builder.AddCopy(os.path.join(builder.sourcePath, 'support', 'README.txt'), metamod_folder)
 
 pdb_list = []
 for task in MMS.binaries:

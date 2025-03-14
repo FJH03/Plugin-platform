@@ -97,8 +97,6 @@ class MMSConfig(object):
     self.sdk_targets = SdkHelpers.sdk_targets
 
   def configure(self):
-    builder.AddConfigureFile('pushbuild.txt')
-
     for cxx in self.all_targets:
       if cxx.target.arch not in ['x86', 'x86_64']:
         raise Exception('Unknown target architecture: {0}'.format(arch))

@@ -124,8 +124,7 @@ void CPredictionCopy::ReportFieldsDiffer( const char *fmt, ... )
 		Msg( "\n" );
 	}
 
-	Msg( "[Tick %d] %03i %s::%s - %s",
-		gpGlobals->tickcount,
+	Msg( "%03i %s::%s - %s",
 		m_nErrorCount,
 		m_pCurrentClassName,
 		fieldname,
@@ -515,7 +514,7 @@ void CPredictionCopy::DescribeQuaternion( difftype_t dt, Quaternion* outValue, c
 
 		for ( int j = 0; j < 4; j++ )
 		{
-			delta[j] = outValue[i][j] - inValue[i][j];
+			delta[i] = outValue[i][j] - inValue[i][j];
 		}
 
 		ReportFieldsDiffer( "quaternion[] differs (1st diff) (net %f %f %f %f - pred %f %f %f %f) delta(%f %f %f %f)\n", 
@@ -655,8 +654,6 @@ CPredictionCopy::difftype_t CPredictionCopy::CompareInt( int *outvalue, const in
 	if ( !m_bErrorCheck )
 		return DIFFERS;
 
-	difftype_t retval = IDENTICAL;
-
 	if ( CanCheck() )
 	{
 		for ( int i = 0; i < count; i++ )
@@ -664,21 +661,12 @@ CPredictionCopy::difftype_t CPredictionCopy::CompareInt( int *outvalue, const in
 			if ( outvalue[ i ] == invalue[ i ] )
 				continue;
 
-			if ( m_pCurrentField->flags & FTYPEDESC_ONLY_ERROR_IF_ABOVE_ZERO_TO_ZERO_OR_BELOW_ETC )
-			{
-				if ( ( outvalue[i] > 0 ) == ( invalue[i] > 0 ) )
-				{
-					retval = WITHINTOLERANCE;
-					continue;
-				}
-			}
-
 			ReportFieldsDiffer( "int differs (net %i pred %i) diff(%i)\n", invalue[i], outvalue[i], outvalue[i] - invalue[i] );
 			return DIFFERS;
 		}
 	}
 
-	return retval;
+	return IDENTICAL;
 }
 
 void CPredictionCopy::CopyBool( difftype_t dt, bool *outvalue, const bool *invalue, int count )
@@ -739,15 +727,6 @@ CPredictionCopy::difftype_t CPredictionCopy::CompareFloat( float *outvalue, cons
 		{
 			if ( outvalue[ i ] == invalue[ i ] )
 				continue;
-
-			if ( m_pCurrentField->flags & FTYPEDESC_ONLY_ERROR_IF_ABOVE_ZERO_TO_ZERO_OR_BELOW_ETC )
-			{
-				if ( ( outvalue[i] > 0.0f ) == ( invalue[i] > 0.0f ) )
-				{
-					retval = WITHINTOLERANCE;
-					continue;
-				}
-			}
 
 			if ( usetolerance &&
 				( fabs( outvalue[ i ] - invalue[ i ] ) <= tolerance ) )
@@ -954,7 +933,7 @@ CPredictionCopy::difftype_t CPredictionCopy::CompareQuaternion( Quaternion* outV
 
 			for ( int j = 0; j < 4; j++ )
 			{
-				delta[j] = outValue[i][j] - inValue[i][j];
+				delta[i] = outValue[i][j] - inValue[i][j];
 			}
 
 			if ( tolerance > 0.0f )

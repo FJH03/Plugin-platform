@@ -13,8 +13,8 @@
 #include "vstdlib/vstdlib.h"
 
 // handle to a KeyValues key name symbol
-typedef int HKeySymbol;
-#define INVALID_KEY_SYMBOL (-1)
+typedef intp HKeySymbol;
+#define INVALID_KEY_SYMBOL (HKeySymbol)(-1)
 
 class IBaseFileSystem;
 class KeyValues;
@@ -48,14 +48,6 @@ public:
 	virtual bool LoadFileKeyValuesFromCache( KeyValues* _outKv, const char *resourceName, const char *pathID, IBaseFileSystem *filesystem ) const = 0;
 	virtual void InvalidateCache( ) = 0;
 	virtual void InvalidateCacheForFile( const char *resourceName, const char *pathID ) = 0;
-
-	// set/get a value for keyvalues resolution symbol
-	// e.g.: SetKeyValuesExpressionSymbol( "LOWVIOLENCE", true ) - enables [$LOWVIOLENCE]
-	virtual void SetKeyValuesExpressionSymbol( const char *name, bool bValue ) = 0;
-	virtual bool GetKeyValuesExpressionSymbol( const char *name ) = 0;
-
-	// symbol table access from code with case-preserving requirements (used for key names)
-	virtual HKeySymbol GetSymbolForStringCaseSensitive( HKeySymbol &hCaseInsensitiveSymbol, const char *name, bool bCreate = true ) = 0;
 };
 
 VSTDLIB_INTERFACE IKeyValuesSystem *KeyValuesSystem();

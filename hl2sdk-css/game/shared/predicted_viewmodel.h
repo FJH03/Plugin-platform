@@ -1,6 +1,6 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
 //
-// Purpose: 
+// Purpose:
 //
 // $NoKeywords: $
 //=============================================================================//
@@ -15,6 +15,7 @@
 #include "utlvector.h"
 #include "baseplayer_shared.h"
 #include "shared_classnames.h"
+#include "weapon_csbase.h"
 
 #if defined( CLIENT_DLL )
 #define CPredictedViewModel C_PredictedViewModel
@@ -29,9 +30,10 @@ public:
 
 	CPredictedViewModel( void );
 	virtual ~CPredictedViewModel( void );
-							
-	virtual void CalcViewModelLag( Vector& origin, QAngle& angles, QAngle& original_angles );
 
+	virtual void CalcViewModelLag( Vector& origin, QAngle& angles, QAngle& original_angles );
+	virtual void AddViewModelBob( CBasePlayer *owner, Vector& eyePosition, QAngle& eyeAngles );
+	
 #if defined( CLIENT_DLL )
 	virtual bool ShouldPredict( void )
 	{
@@ -40,29 +42,24 @@ public:
 
 		return BaseClass::ShouldPredict();
 	}
+#endif
 
-	virtual bool PredictionErrorShouldResetLatchedForAllPredictables( void ) OVERRIDE
-	{
-#ifdef HL2MP
-		// misyl: If viewmodel mispred's on HL2MP don't reset all the player's variables.
-		return false;
-#else
-		// Not changing this behaviour for other games without testing. They also don't have the same issues.
-		return BaseClass::PredictionErrorShouldResetLatchedForAllPredictables();
-#endif
-	}
-#endif
+#if defined( CLIENT_DLL )
+    BobState_t    &GetBobState() { return m_BobState; }
+#endif //CLIENT_DLL
 
 private:
-	
+
 #if defined( CLIENT_DLL )
 
 	// This is used to lag the angles.
 	CInterpolatedVar<QAngle> m_LagAnglesHistory;
 	QAngle m_vLagAngles;
-	Vector	m_vPredictedOffset;
 
 	CPredictedViewModel( const CPredictedViewModel & ); // not defined, not accessible
+
+protected:
+	BobState_t m_BobState;
 
 #endif
 };

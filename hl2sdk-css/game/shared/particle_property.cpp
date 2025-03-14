@@ -26,6 +26,11 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#ifdef STAGING_ONLY
+#ifdef TF_CLIENT_DLL
+extern ConVar tf_unusual_effect_offset;
+#endif
+#endif
 
 //-----------------------------------------------------------------------------
 // Save/load
@@ -92,6 +97,10 @@ int CParticleProperty::GetParticleAttachment( C_BaseEntity *pEntity, const char 
 
 	// Find the attachment point index
 	int iAttachment = pEntity->GetBaseAnimating()->LookupAttachment( pszAttachmentName );
+	if ( iAttachment == INVALID_PARTICLE_ATTACHMENT )
+	{
+		Warning("Model '%s' doesn't have attachment '%s' to attach particle system '%s' to.\n", STRING(pEntity->GetBaseAnimating()->GetModelName()), pszAttachmentName, pszParticleName );
+	}
 
 	return iAttachment;
 }
@@ -356,15 +365,13 @@ void CParticleProperty::StopParticlesInvolving( CBaseEntity *pEntity )
 // Purpose: Stop all effects that were created using the given definition
 //			name.
 //-----------------------------------------------------------------------------
-void CParticleProperty::StopParticlesNamed( const char *pszEffectName, bool bForceRemoveInstantly /* =false */,  bool bInverse /*= false*/ )
+void CParticleProperty::StopParticlesNamed( const char *pszEffectName, bool bForceRemoveInstantly /* =false */ )
 {
-	if ( !pszEffectName || !pszEffectName[0] )
-		return;
-
 	CParticleSystemDefinition *pDef = g_pParticleSystemMgr->FindParticleSystem( pszEffectName );
 	AssertMsg1(pDef, "Could not find particle definition %s", pszEffectName );
 	if (!pDef)
 		return;
+
 
 	// If we return from dormancy and are then told to stop emitting,
 	// we should have died while dormant. Remove ourselves immediately.
@@ -377,14 +384,12 @@ void CParticleProperty::StopParticlesNamed( const char *pszEffectName, bool bFor
 	{
 		// for each effect...
 		CNewParticleEffect *pParticleEffect = m_ParticleEffects[i].pParticleEffect.GetObject();
-		bool bMatches = pParticleEffect->m_pDef() == pDef;
-		if ( bMatches == !bInverse )
+		if (pParticleEffect->m_pDef() == pDef)
 		{
 			pParticleEffect->StopEmission( false, bRemoveInstantly );
 		}
 	}
 }
-
 
 void CParticleProperty::StopParticlesWithNameAndAttachment( const char *pszEffectName, int iAttachmentPoint, bool bForceRemoveInstantly /* =false */ )
 {
@@ -557,7 +562,7 @@ void CParticleProperty::UpdateControlPoint( ParticleEffectList_t *pEffect, int i
 #ifdef TF_CLIENT_DLL
 
 	CBaseEntity *pWearable = (CBaseEntity*) pPoint->hEntity.Get();
-	if ( pWearable && GetAttribInterface( pWearable ) && !pWearable->IsPlayer() )
+	if ( pWearable && dynamic_cast<IHasAttributes*>( pWearable ) && !pWearable->IsPlayer() )
 	{
 		C_BaseAnimating *pAnimating = pPoint->hEntity->GetBaseAnimating();
 		if ( pAnimating )
@@ -611,9 +616,7 @@ void CParticleProperty::UpdateControlPoint( ParticleEffectList_t *pEffect, int i
 						if ( !pAnimating->C_BaseAnimating::GetAttachment( pPoint->iAttachmentPoint, attachmentToWorld ) )
 						{
 							Warning( "Cannot update control point %d for effect '%s'.\n", pPoint->iAttachmentPoint, pEffect->pParticleEffect->GetEffectName() );
-							// Remove the effect cause this warning means something is orphaned
-							StopParticlesNamed( pEffect->pParticleEffect->GetEffectName() );
-							return;
+							attachmentToWorld = pAnimating->RenderableToWorldTransform();
 						}
 					}
 
@@ -622,7 +625,7 @@ void CParticleProperty::UpdateControlPoint( ParticleEffectList_t *pEffect, int i
 					MatrixVectors( vMat.As3x4(), &vecForward, &vecRight, &vecUp );
 					MatrixPosition( vMat.As3x4(), vecOrigin );
 
-					if ( pEffect->pParticleEffect->GetIsViewModelEffect() )
+					if ( pEffect->pParticleEffect->m_pDef->IsViewModelEffect() )
 					{
 						FormatViewModelAttachment( vecOrigin, true );
 					}

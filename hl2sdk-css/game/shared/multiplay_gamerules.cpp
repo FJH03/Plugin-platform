@@ -42,16 +42,6 @@
 	#include "NextBotManager.h"
 #endif
 
-#ifdef TF_DLL
-	#include <unordered_set>
-	#include "hl2orange.spa.h"
-#endif
-
-// TODO Why did we add this to the base class guys.
-#if defined ( TF_DLL ) || defined ( TF_CLIENT_DLL )
-	#include "player_vs_environment/tf_population_manager.h"
-#endif
-
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -95,8 +85,7 @@ ConVar mp_show_voice_icons( "mp_show_voice_icons", "1", FCVAR_REPLICATED, "Show 
 
 #ifdef GAME_DLL
 
-ConVar tv_delaymapchange( "tv_delaymapchange", "0", FCVAR_NONE, "Delays map change until broadcast is complete" );
-ConVar tv_delaymapchange_protect( "tv_delaymapchange_protect", "1", FCVAR_NONE, "Protect against doing a manual map change if HLTV is broadcasting and has not caught up with a major game event such as round_end" );
+ConVar tv_delaymapchange( "tv_delaymapchange", "0", 0, "Delays map change until broadcast is complete" );
 
 ConVar mp_restartgame( "mp_restartgame", "0", FCVAR_GAMEDLL, "If non-zero, game will restart in the specified number of seconds" );
 ConVar mp_restartgame_immediate( "mp_restartgame_immediate", "0", FCVAR_GAMEDLL, "If non-zero, game will restart immediately" );
@@ -289,7 +278,7 @@ CMultiplayRules::CMultiplayRules()
 
 		if ( cfgfile && cfgfile[0] )
 		{
-			char szCommand[MAX_PATH];
+			char szCommand[256];
 
 			Log( "Executing dedicated server config file %s\n", cfgfile );
 			Q_snprintf( szCommand,sizeof(szCommand), "exec %s\n", cfgfile );
@@ -303,7 +292,7 @@ CMultiplayRules::CMultiplayRules()
 
 		if ( cfgfile && cfgfile[0] )
 		{
-			char szCommand[MAX_PATH];
+			char szCommand[256];
 
 			Log( "Executing listen server config file %s\n", cfgfile );
 			Q_snprintf( szCommand,sizeof(szCommand), "exec %s\n", cfgfile );
@@ -1160,26 +1149,25 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		}
 	}
 
-	// Strip ' ' and '\n' characters from string.
-	static void StripWhitespaceChars( char *szBuffer )
+	void StripChar(char *szBuffer, const char cWhiteSpace )
 	{
-		char *szOut = szBuffer;
+		char *src, *dst;
 
-		for ( char *szIn = szOut; *szIn; szIn++ )
+		for (src = dst = szBuffer; *src != '\0'; src++)
 		{
-			if ( *szIn != ' ' && *szIn != '\r' )
-				*szOut++ = *szIn;
+			*dst = *src;
+			if (*dst != cWhiteSpace) dst++;
 		}
-		*szOut = '\0';
+		*dst = '\0';
 	}
 
 	void CMultiplayRules::GetNextLevelName( char *pszNextMap, int bufsize, bool bRandom /* = false */ )
 	{
-		char mapcfile[MAX_PATH];
+		char mapcfile[256];
 		DetermineMapCycleFilename( mapcfile, sizeof(mapcfile), false );
 
 		// Check the time of the mapcycle file and re-populate the list of level names if the file has been modified
-		const int nMapCycleTimeStamp = filesystem->GetPathTime( mapcfile, "MOD" );
+		const int nMapCycleTimeStamp = filesystem->GetPathTime( mapcfile, "GAME" );
 
 		if ( 0 == nMapCycleTimeStamp )
 		{
@@ -1193,7 +1181,10 @@ ConVarRef suitcharger( "sk_suitcharger" );
 			// If map cycle file has changed or this is the first time through ...
 			if ( m_nMapCycleTimeStamp != nMapCycleTimeStamp )
 			{
-				// Reload
+				// Reset map index and map cycle timestamp
+				m_nMapCycleTimeStamp = nMapCycleTimeStamp;
+				m_nMapCycleindex = 0;
+
 				LoadMapCycleFile();
 			}
 		}
@@ -1217,7 +1208,7 @@ ConVarRef suitcharger( "sk_suitcharger" );
 
 	void CMultiplayRules::DetermineMapCycleFilename( char *pszResult, int nSizeResult, bool bForceSpew )
 	{
-		static char szLastResult[ MAX_PATH ];
+		static char szLastResult[ 256];
 
 		const char *pszVar = mapcyclefile.GetString();
 		if ( *pszVar == '\0' )
@@ -1231,30 +1222,12 @@ ConVarRef suitcharger( "sk_suitcharger" );
 			return;
 		}
 
-		// Check cfg/foo first.  Resolve dot-slashes only on the concatonated path, since "../foo" is valid if it
-		// matches "cfg/../foo".
-		//
-		// XXX Everything is awful bonus, V_RemoveDotSlashes("a/../b") returns false and the invalid "/b" parse, and the
-		//     comment there says "for backwards compat".  So we do "/cfg/%s" and then trim the first character on
-		//     success because why not.
-		char szRecommendedNameWithSlash[ MAX_PATH ] = { 0 };
-		V_sprintf_safe( szRecommendedNameWithSlash, "/cfg/%s", pszVar );
-		char *pszRecommendedName = szRecommendedNameWithSlash + 1;
-		if ( !V_RemoveDotSlashes( szRecommendedNameWithSlash ) ||
-		     szRecommendedNameWithSlash[0] != CORRECT_PATH_SEPARATOR || !*pszRecommendedName )
-		{
-			if ( bForceSpew || V_stricmp( szLastResult, "__novar") )
-			{
-				Msg( "mapcyclefile convar is not a valid path.\n" );
-				V_strcpy_safe( szLastResult, "__novar" );
-			}
-			*pszResult = '\0';
-			return;
-		}
+		char szRecommendedName[ 256 ];
+		V_sprintf_safe( szRecommendedName, "cfg/%s", pszVar );
 
 		// First, look for a mapcycle file in the cfg directory, which is preferred
-		V_strncpy( pszResult, pszRecommendedName, nSizeResult );
-		if ( filesystem->FileExists( pszResult, "MOD" ) )
+		V_strncpy( pszResult, szRecommendedName, nSizeResult );
+		if ( filesystem->FileExists( pszResult, "GAME" ) )
 		{
 			if ( bForceSpew || V_stricmp( szLastResult, pszResult) )
 			{
@@ -1264,43 +1237,27 @@ ConVarRef suitcharger( "sk_suitcharger" );
 			return;
 		}
 
-		// Nope?  Try the root.  Resolve dot-slashes in the path in isolation since "../foo" is now not allowed from
-		// there.  Same note as above about V_RemoveDotSlashes being actually broken.
-		char szCleanPathWithSlash[ MAX_PATH ] = { 0 };
-		V_sprintf_safe( szCleanPathWithSlash, "/%s", pszVar );
-		char *pszCleanPath = szCleanPathWithSlash + 1;
-		if ( !V_RemoveDotSlashes( szCleanPathWithSlash ) || szCleanPathWithSlash[0] != CORRECT_PATH_SEPARATOR || !pszCleanPath )
-		{
-			if ( bForceSpew || V_stricmp( szLastResult, "__novar") )
-			{
-				Msg( "mapcyclefile convar is not a valid path.\n" );
-				V_strcpy_safe( szLastResult, "__novar" );
-			}
-			*pszResult = '\0';
-			return;
-		}
-
-
-		V_strncpy( pszResult, pszCleanPath, nSizeResult );
-		if ( filesystem->FileExists( pszResult, "MOD" ) )
+		// Nope?  Try the root.
+		V_strncpy( pszResult, pszVar, nSizeResult );
+		if ( filesystem->FileExists( pszResult, "GAME" ) )
 		{
 			if ( bForceSpew || V_stricmp( szLastResult, pszResult) )
 			{
-				Msg( "Using map cycle file '%s'.  ('%s' was not found.)\n", pszResult, pszRecommendedName );
+				Msg( "Using map cycle file '%s'.  ('%s' was not found.)\n", pszResult, szRecommendedName );
 				V_strcpy_safe( szLastResult, pszResult );
 			}
 			return;
 		}
 
 		// Nope?  Use the default.
-		if ( !V_stricmp( pszCleanPath, "mapcycle.txt" ) )
+		if ( !V_stricmp( pszVar, "mapcycle.txt" ) )
 		{
 			V_strncpy( pszResult, "cfg/mapcycle_default.txt", nSizeResult );
-			if ( filesystem->FileExists( pszResult, "MOD" ) )
+			if ( filesystem->FileExists( pszResult, "GAME" ) )
 			{
 				if ( bForceSpew || V_stricmp( szLastResult, pszResult) )
 				{
-					Msg( "Using map cycle file '%s'.  ('%s' was not found.)\n", pszResult, pszRecommendedName );
+					Msg( "Using map cycle file '%s'.  ('%s' was not found.)\n", pszResult, szRecommendedName );
 					V_strcpy_safe( szLastResult, pszResult );
 				}
 				return;
@@ -1311,20 +1268,15 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		*pszResult = '\0';
 		if ( bForceSpew || V_stricmp( szLastResult, "__notfound") )
 		{
-			Msg( "Map cycle file '%s' was not found.\n", pszRecommendedName );
+			Msg( "Map cycle file '%s' was not found.\n", szRecommendedName );
 			V_strcpy_safe( szLastResult, "__notfound" );
 		}
 	}
 
-	void CMultiplayRules::LoadMapCycleFileIntoVector( const char *pszMapCycleFile, CUtlVector<char *> &mapList )
-	{
-		CMultiplayRules::RawLoadMapCycleFileIntoVector( pszMapCycleFile, mapList );
-	}
-
-	void CMultiplayRules::RawLoadMapCycleFileIntoVector( const char *pszMapCycleFile, CUtlVector<char *> &mapList )
+	void CMultiplayRules::LoapMapCycleFileIntoVector( const char *pszMapCycleFile, CUtlVector<char *> &mapList )
 	{
 		CUtlBuffer buf;
-		if ( !filesystem->ReadFile( pszMapCycleFile, "MOD", buf ) )
+		if ( !filesystem->ReadFile( pszMapCycleFile, "GAME", buf ) )
 			return;
 		buf.PutChar( 0 );
 		V_SplitString( (char*)buf.Base(), "\n", mapList );
@@ -1333,12 +1285,20 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		{
 			bool bIgnore = false;
 
-			// Strip out ' ' and '\r' chars.
-			StripWhitespaceChars( mapList[i] );
+			// Strip out the spaces in the name
+			StripChar( mapList[i] , '\r');
+			StripChar( mapList[i] , ' ');
 
 			if ( !Q_strncmp( mapList[i], "//", 2 ) || mapList[i][0] == '\0' )
 			{
 				bIgnore = true;
+			}
+			else if ( !engine->IsMapValid( mapList[i] ) )
+			{
+				bIgnore = true;
+
+				// If the engine doesn't consider it a valid map remove it from the lists
+				Warning( "Invalid map '%s' included in map cycle file. Ignored.\n", mapList[i] );
 			}
 
 			if ( bIgnore )
@@ -1361,27 +1321,6 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		mapList.RemoveAll();
 	}
 
-	bool CMultiplayRules::IsManualMapChangeOkay( const char **pszReason )
-	{
-		if ( HLTVDirector()->IsActive() && ( HLTVDirector()->GetDelay() >= HLTV_MIN_DIRECTOR_DELAY ) )
-		{
-			if ( tv_delaymapchange.GetBool() && tv_delaymapchange_protect.GetBool() )
-			{
-				float flLastEvent = GetLastMajorEventTime();
-				if ( flLastEvent > -1 )
-				{
-					if ( flLastEvent > ( gpGlobals->curtime - ( HLTVDirector()->GetDelay() + 3 ) ) ) // +3 second delay to prevent instant change after a major event
-					{
-						*pszReason = "\n***WARNING*** Map change blocked. HLTV is broadcasting and has not caught up to the last major game event yet.\nYou can disable this check by setting the value of the server convar \"tv_delaymapchange_protect\" to 0.\n";
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
-	}
-
 	bool CMultiplayRules::IsMapInMapCycle( const char *pszName )
 	{
 		for ( int i = 0; i < m_MapList.Count(); i++ )
@@ -1399,7 +1338,7 @@ ConVarRef suitcharger( "sk_suitcharger" );
 	{
 		char szNextMap[MAX_MAP_NAME];
 
-		if ( nextlevel.GetString() && *nextlevel.GetString() )
+		if ( nextlevel.GetString() && *nextlevel.GetString() && engine->IsMapValid( nextlevel.GetString() ) )
 		{
 			Q_strncpy( szNextMap, nextlevel.GetString(), sizeof( szNextMap ) );
 		}
@@ -1414,19 +1353,13 @@ ConVarRef suitcharger( "sk_suitcharger" );
 
 	void CMultiplayRules::LoadMapCycleFile( void )
 	{
-		int nOldCycleIndex = m_nMapCycleindex;
-		m_nMapCycleindex = 0;
-
-		char mapcfile[MAX_PATH];
+		char mapcfile[256];
 		DetermineMapCycleFilename( mapcfile, sizeof(mapcfile), false );
 
 		FreeMapCycleFileVector( m_MapList );
 
-		const int nMapCycleTimeStamp = filesystem->GetPathTime( mapcfile, "MOD" );
-		m_nMapCycleTimeStamp = nMapCycleTimeStamp;
-
 		// Repopulate map list from mapcycle file
-		LoadMapCycleFileIntoVector( mapcfile, m_MapList );
+		LoapMapCycleFileIntoVector( mapcfile, m_MapList );
 
 		// Load server's mapcycle into network string table for client-side voting
 		if ( g_pStringTableServerMapCycle )
@@ -1447,14 +1380,36 @@ ConVarRef suitcharger( "sk_suitcharger" );
 			// Search for all pop files that are prefixed with the current map name
 			CUtlString sFileList;
 
-			CUtlVector< CUtlString > defaultPopFiles;
-			CPopulationManager::FindDefaultPopulationFileShortNames( defaultPopFiles );
+			char szBaseName[_MAX_PATH];
+			V_snprintf( szBaseName, sizeof( szBaseName ), "scripts/population/%s*.pop", STRING(gpGlobals->mapname) );
 
-			FOR_EACH_VEC( defaultPopFiles, idx )
+			FileFindHandle_t popHandle;
+			const char *pPopFileName = filesystem->FindFirst( szBaseName, &popHandle );
+
+			while ( pPopFileName && pPopFileName[ 0 ] != '\0' )
 			{
-				sFileList += defaultPopFiles[ idx ];
-				sFileList += "\n";
+				// Skip it if it's a directory or is the folder info
+				if ( filesystem->FindIsDirectory( popHandle ) )
+				{
+					pPopFileName = filesystem->FindNext( popHandle );
+					continue;
+				}
+
+				const char *pchPopPostfix = StringAfterPrefix( pPopFileName, STRING(gpGlobals->mapname) );
+				if ( pchPopPostfix )
+				{
+					char szShortName[_MAX_PATH];
+					V_strncpy( szShortName, ( ( pchPopPostfix[ 0 ] == '_' ) ? ( pchPopPostfix + 1 ) : "normal" ), sizeof( szShortName ) ); // skip the '_'
+					V_StripExtension( szShortName, szShortName, sizeof( szShortName ) );
+
+					sFileList += szShortName;
+					sFileList += '\n';
+				}
+
+				pPopFileName = filesystem->FindNext( popHandle );
 			}
+
+			filesystem->FindClose( popHandle );
 
 			if ( sFileList.Length() > 0 )
 			{
@@ -1511,29 +1466,16 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		}
 #endif
 
-		// If the current map is in the same location in the new map cycle, keep that index. This gives better behavior
-		// when reloading a map cycle that has the current map in it multiple times.
-		int nOldPreviousMap = ( nOldCycleIndex == 0 ) ? ( m_MapList.Count() - 1 ) : ( nOldCycleIndex - 1 );
-		if ( nOldCycleIndex >= 0 && nOldCycleIndex < m_MapList.Count() &&
-		     nOldPreviousMap >= 0 && nOldPreviousMap < m_MapList.Count() &&
-		     V_strcmp( STRING( gpGlobals->mapname ), m_MapList[ nOldPreviousMap ] ) == 0 )
+		// If the current map selection is in the list, set m_nMapCycleindex to the map that follows it.
+		for ( int i = 0; i < m_MapList.Count(); i++ )
 		{
-			// The old index is still valid, and falls after our current map in the new cycle, use it
-			m_nMapCycleindex = nOldCycleIndex;
-		}
-		else
-		{
-			// Otherwise, if the current map selection is in the list, set m_nMapCycleindex to the map that follows it.
-			for ( int i = 0; i < m_MapList.Count(); i++ )
+			if ( V_strcmp( STRING( gpGlobals->mapname ), m_MapList[i] ) == 0 )
 			{
-				if ( V_strcmp( STRING( gpGlobals->mapname ), m_MapList[i] ) == 0 )
-				{
-					m_nMapCycleindex = i;
-					IncrementMapCycleIndex();
-					break;
-				}
+				m_nMapCycleindex = i;
+				IncrementMapCycleIndex();
+				break;
 			}
-		}
+		}		
 	}
 
 	void CMultiplayRules::ChangeLevelToMap( const char *pszMap )
@@ -1614,7 +1556,7 @@ ConVarRef suitcharger( "sk_suitcharger" );
 
 		Msg( "Skipping: %s\tNext map: %s\n", szSkippedMap, szNextMap );
 
-		if ( nextlevel.GetString() && *nextlevel.GetString() )
+		if ( nextlevel.GetString() && *nextlevel.GetString() && engine->IsMapValid( nextlevel.GetString() ) )
 		{
 			Msg( "Warning! \"nextlevel\" is set to \"%s\" and will override the next map to be played.\n", nextlevel.GetString() );
 		}
@@ -1641,7 +1583,7 @@ ConVarRef suitcharger( "sk_suitcharger" );
 
 			CBaseMultiplayerPlayer *pMultiPlayerPlayer = dynamic_cast< CBaseMultiplayerPlayer * >( pPlayer );
 
-			if ( pMultiPlayerPlayer && pMultiPlayerPlayer->ShouldRunRateLimitedCommand( pcmd ) )
+			if ( pMultiPlayerPlayer )
 			{
 				int iMenu = atoi( args[1] );
 				int iItem = atoi( args[2] );
@@ -1655,18 +1597,6 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		return BaseClass::ClientCommand( pEdict, args );
 	}
 
-#ifdef TF_DLL
-	#define ACHIEVEMENT_LIST_(id) id
-	#define ACHIEVEMENT_LIST(className, achievementID, achievementName, iPointValue) \
-		ACHIEVEMENT_LIST_(achievementID),
-
-	static const std::unordered_set<int> g_ValidAchiementIdxs = {{
-		#include "achievements_tf_list.inc"
-	}};
-
-	#undef ACHIEVEMENT_LIST
-#endif
-
 	void CMultiplayRules::ClientCommandKeyValues( edict_t *pEntity, KeyValues *pKeyValues )
 	{
 		CBaseMultiplayerPlayer *pPlayer = dynamic_cast< CBaseMultiplayerPlayer * >( CBaseEntity::Instance( pEntity ) );
@@ -1679,32 +1609,24 @@ ConVarRef suitcharger( "sk_suitcharger" );
 		{
 			if ( FStrEq( pszCommand, "AchievementEarned" ) )
 			{
-				if ( !pPlayer->ShouldAnnounceAchievement() )
-					return;
-
-				int nAchievementID = pKeyValues->GetInt( "achievementID" );
-
-#ifdef TF_DLL
-				// Josh:
-				// Bots are using this as a back-channel to communicate on our servers
-				// with invalid achievement indexes.
-				// I did want to use achievementmgr but that isn't available on the server --
-				// nor are the achievement's actually DECLARED (they rely on a bunch of client code)
-				// so we have a list of achievements in achievements_tf_list.inc.
-				// Let's validate the achievement is actually valid before continuing...
-				if ( g_ValidAchiementIdxs.find( nAchievementID ) == g_ValidAchiementIdxs.end() )
-					return;
-#endif
-
-				IGameEvent * event = gameeventmanager->CreateEvent( "achievement_earned" );
-				if ( event )
+				if ( pPlayer->ShouldAnnounceAchievement() )
 				{
-					event->SetInt( "player", pPlayer->entindex() );
-					event->SetInt( "achievement", nAchievementID );
-					gameeventmanager->FireEvent( event );
-				}
+					int nAchievementID = pKeyValues->GetInt( "achievementID" );
 
-				pPlayer->OnAchievementEarned( nAchievementID );
+					IGameEvent * event = gameeventmanager->CreateEvent( "achievement_earned" );
+					if ( event )
+					{
+						event->SetInt( "player", pPlayer->entindex() );
+						event->SetInt( "achievement", nAchievementID );
+						gameeventmanager->FireEvent( event );
+					}
+
+					pPlayer->OnAchievementEarned( nAchievementID );
+				}
+			}
+			else if ( FStrEq( pszCommand, "SendServerMapCycle" ) )
+			{
+				LoadMapCycleFile();	
 			}
 		}
 	}

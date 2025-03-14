@@ -103,7 +103,7 @@ struct ThreadPoolStartParams_t
 	{
 		bExecOnThreadPoolThreadsOnly = false;
 
-		bUseAffinityTable = ( pAffinities != NULL ) && ( fDistribute == TRS_TRUE ) && ( nThreads != (unsigned)-1 );
+		bUseAffinityTable = ( pAffinities != NULL ) && ( fDistribute == TRS_TRUE ) && ( nThreads != -1 );
 		if ( bUseAffinityTable )
 		{
 			// user supplied an optional 1:1 affinity mapping to override normal distribute behavior
@@ -191,7 +191,7 @@ public:
 	//  and execute or execute pFunctor right after completing current job and
 	//  before looking for another job.
 	//-----------------------------------------------------
-	virtual void ExecuteHighPriorityFunctor( CFunctor *pFunctor ) = 0;
+	// virtual void ExecuteHighPriorityFunctor( CFunctor *pFunctor ) = 0;
 
 	//-----------------------------------------------------
 	// Add an function object to the queue (master thread)
@@ -492,8 +492,8 @@ public:
 	//-----------------------------------------------------
 	// Thread event support (safe for NULL this to simplify code )
 	//-----------------------------------------------------
-	bool WaitForFinish( uint32 dwTimeout = TT_INFINITE ) { if (!this) return true; return ( !IsFinished() ) ? g_pThreadPool->YieldWait( this, dwTimeout ) : true; }
-	bool WaitForFinishAndRelease( uint32 dwTimeout = TT_INFINITE ) { if (!this) return true; bool bResult = WaitForFinish( dwTimeout); Release(); return bResult; }
+	inline bool WaitForFinish( uint32 dwTimeout = TT_INFINITE, IThreadPool *pool = g_pThreadPool ) { if (!this) return true; return ( !IsFinished() ) ? pool->YieldWait( this, dwTimeout ) : true; }
+	inline bool WaitForFinishAndRelease( uint32 dwTimeout = TT_INFINITE ) { if (!this) return true; bool bResult = WaitForFinish( dwTimeout); Release(); return bResult; }
 	CThreadEvent *AccessEvent()						{ return &m_CompleteEvent; }
 
 	//-----------------------------------------------------
@@ -1162,7 +1162,7 @@ inline ThreadHandle_t ThreadExecuteSoloImpl( CFunctor *pFunctor, const char *psz
 	hThread = CreateSimpleThread( FunctorExecuteThread, pFunctor, &threadId );
 	if ( pszName )
 	{
-		ThreadSetDebugName( threadId, pszName );
+		ThreadSetDebugName( (ThreadHandle_t)threadId, pszName );
 	}
 	return hThread;
 }
