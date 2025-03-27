@@ -6,130 +6,171 @@
 		{
 			"EntityListeners"
 			{
-				//"windows64"	"262200"
-				//"linux64"	"262200"
 				"windows64" "130008"
 				"linux64"	"130008"
 			}
-			"Blocked"
-			{
-				"windows64"	"102"
-				"linux64"	"103"
-			}
-			"EndTouch"
-			{
-				"windows64"	"100"
-				"linux64"	"101"
-			}
-			"FireBullets"
-			{
-				"windows64"	"112"
-				"linux64"	"113"
-			}
-			"GetMaxHealth"
-			{
-				"windows64"	"117"
-				"linux64"	"118"
-			}
-			"GroundEntChanged"
-			{
-				"windows64"	"177"
-				"linux64"	"179"
-			}
-			"OnTakeDamage"
-			{
-				"windows64"	"62"
-				"linux64"	"63"
-			}
-			"OnTakeDamage_Alive"
-			{
-				"windows64"	"271"
-				"linux64"	"272"
-			}
-			"PreThink"
-			{
-				"windows64"	"331"
-				"linux64"	"332"
-			}
-			"PostThink"
-			{
-				"windows64"	"332"
-				"linux64"	"333"
-			}
-			"Reload"
-			{
-				"windows64"	"268"
-				"linux64"	"269"
-			}
-			"SetTransmit"
-			{
-				"windows64"	"20"
-				"linux64"	"21"
-			}
+
+			//CBaseEntity::ShouldCollide(int, int) const
 			"ShouldCollide"
 			{
 				"windows64"	"16"
 				"linux64"	"17"
 			}
+
+			//CBaseAnimating::SetTransmit(CCheckTransmitInfo*, bool)
+			"SetTransmit"
+			{
+				"windows64"	"20"
+				"linux64"	"21"
+			}
+			/* CBaseEntity::GetBeamTraceFilter() */
+			//CWeaponCSBaseGun::Spawn()
 			"Spawn"
 			{
 				"windows64"	"22"
 				"linux64"	"23"
 			}
-			"StartTouch"
-			{
-				"windows64"	"98"
-				"linux64"	"99"
-			}
+
+			//CBaseEntity::Think()
 			"Think"
 			{
 				"windows64"	"47"
 				"linux64"	"48"
 			}
-			"Touch"
-			{
-				"windows64"	"99"
-				"linux64"	"100"
-			}
+
+			//CBaseEntity::TraceAttack(CTakeDamageInfo const&, Vector const&, CGameTrace*, CDmgAccumulator*)
 			"TraceAttack"
 			{
 				"windows64"	"60"
 				"linux64"	"61"
 			}
+			/* CBaseEntity::CanBeHitByMeleeAttack(CBaseEntity*) */
+			//CBaseEntity::OnTakeDamage(CTakeDamageInfo const&) 
+			"OnTakeDamage"
+			{
+				"windows64"	"62"
+				"linux64"	"63"
+			}
+
+			//CWeaponCSBase::Use(CBaseEntity*, CBaseEntity*, USE_TYPE, float)
 			"Use"
 			{
 				"windows64"	"97"
 				"linux64"	"98"
 			}
+			//CBaseEntity::StartTouch(CBaseEntity*)
+			"StartTouch"
+			{
+				"windows64"	"98"
+				"linux64"	"99"
+			}
+			//CBaseEntity::Touch(CBaseEntity*)
+			"Touch"
+			{
+				"windows64"	"99"
+				"linux64"	"100"
+			}
+			//CBaseEntity::EndTouch(CBaseEntity*)
+			"EndTouch"
+			{
+				"windows64"	"100"
+				"linux64"	"101"
+			}
+
+			//CBaseEntity::Blocked(CBaseEntity*)
+			"Blocked"
+			{
+				"windows64"	"102"
+				"linux64"	"103"
+			}
+
+			//CBaseEntity::FireBullets(FireBulletsInfo_t const&)
+			"FireBullets"
+			{
+				"windows64"	"112"
+				"linux64"	"113"
+			}
+
+			//CBaseEntity::GetMaxHealth() const
+			"GetMaxHealth"
+			{
+				"windows64"	"117"
+				"linux64"	"118"
+			}
+
+			//CBaseEntity::VPhysicsUpdate(IPhysicsObject*)
 			"VPhysicsUpdate"
 			{
 				"windows64"	"157"
 				"linux64"	"158"
 			}
-			"Weapon_CanSwitchTo"
+
+			//CBaseEntity::NetworkStateChanged_m_hGroundEntity(void*)
+			"GroundEntChanged"
 			{
-				"windows64"	"265"
-				"linux64"	"266"
+				"windows64"	"177"
+				"linux64"	"179"
 			}
+
+			//CWeaponCSBaseGun::Reload()
+			"Reload"
+			{
+				"windows64"	"268"
+				"linux64"	"269"
+			}
+
+
+			//CBasePlayer::Weapon_CanUse(CBaseCombatWeapon*)
 			"Weapon_CanUse"
 			{
 				"windows64"	"259"
 				"linux64"	"260"
 			}
-			"Weapon_Drop"
-			{
-				"windows64"	"262"
-				"linux64"	"263"
-			}
+			//CBasePlayer::Weapon_Equip(CBaseCombatWeapon*)
 			"Weapon_Equip"
 			{
 				"windows64"	"260"
 				"linux64"	"261"
 			}
+			/* CBaseCombatCharacter::Weapon_EquipAmmoOnly(CBaseCombatWeapon*) */
+			//CBasePlayer::Weapon_Drop(CBaseCombatWeapon*, Vector const*, Vector const*)
+			"Weapon_Drop"
+			{
+				"windows64"	"262"
+				"linux64"	"263"
+			}
+			//CBasePlayer::Weapon_Switch(CBaseCombatWeapon*, int)
 			"Weapon_Switch"
 			{
 				"windows64"	"263"
 				"linux64"	"264"
+			}
+			/* CBasePlayer::Weapon_ShootPosition() */
+			//CBaseCombatCharacter::Weapon_CanSwitchTo(CBaseCombatWeapon*)
+			"Weapon_CanSwitchTo"
+			{
+				"windows64"	"265"
+				"linux64"	"266"
+			}
+
+			//CBasePlayer::OnTakeDamage_Alive(CTakeDamageInfo const&)
+			"OnTakeDamage_Alive"
+			{
+				"windows64"	"271"
+				"linux64"	"272"
+			}
+
+			//CBasePlayer::PreThink()
+			"PreThink"
+			{
+				"windows64"	"331"
+				"linux64"	"332"
+			}
+			//CBasePlayer::PostThink()
+			"PostThink"
+			{
+				"windows64"	"332"
+				"linux64"	"333"
 			}
 		}
 	}
