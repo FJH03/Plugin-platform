@@ -8,6 +8,8 @@
 			{
 				"windows64" "130008"
 				"linux64"	"130008"
+				"windows64" "262200"
+				"linux64"   "262200"
 			}
 
 			//CBaseEntity::ShouldCollide(int, int) const
